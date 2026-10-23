@@ -4,144 +4,27 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import com.example.myapplication.ui.RegistroUi
 import com.example.myapplication.ui.theme.MyApplicationTheme
+import com.example.myapplication.ui.theme.LoginUi
+import com.example.myapplication.viewmodel.LoginViewModel
+import com.example.myapplication.viewmodel.RegistroViewModel
 
 class MainActivity : ComponentActivity() {
+
+    private val loginModelForm = LoginViewModel()
+    private val registroModelForm = RegistroViewModel()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             MyApplicationTheme {
-                    var nombre by remember { mutableStateOf("") }
-                    var contrasena by remember { mutableStateOf("") }
-                    var modal by remember { mutableStateOf(false) }
-                    var terminos by remember { mutableStateOf(false) }
-
-                    fun abrirModal() {
-                        modal = true
-                    }
-
-                    fun cerrarModal() {
-                        modal = false
-                    }
-
-                    fun verificarNombre(): Boolean {
-                        if (nombre == "") {
-                            return true
-                        } else {
-                            return false
-                        }
-                    }
-
-                    fun verificarContrasena(): Boolean {
-                        if (contrasena == "") {
-                            return true
-                        } else {
-                            return false
-                        }
-                    }
-
-                    fun validarTerminos(): Boolean{
-                        if(terminos){
-                            return true
-                        } else {
-                            return false
-                        }
-                    }
-
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-
-                        Text(text = "Ingresa tus datos para iniciar sesion")
-                        Spacer(modifier = Modifier.height(15.dp))
-                        OutlinedTextField(
-                            value = nombre,
-                            onValueChange = { nombre = it },
-                            label = { Text("Ingresa Nombre") },
-                            isError = verificarNombre(),
-                            supportingText = {
-                                if (verificarNombre()) {
-                                    Text("Hay un problema", color = Color.Red)
-                                }
-                            }
-                        )
-                        OutlinedTextField(
-                            value = contrasena,
-                            onValueChange = { contrasena = it },
-                            label = { Text("Ingresa Contraseña") },
-                            isError = verificarContrasena(),
-                            supportingText = {
-                                if (verificarContrasena()) {
-                                    Text("Hay un problema", color = Color.Red)
-                                }
-                            }
-                        )
-
-                        Row(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Button(
-                                onClick = {  },
-                                ) {
-                                Text(text = "Registrarse")
-                            }
-
-                            Button(
-                                onClick = { },
-                                ) {
-                                Text(text = "Recuperar Contraseña")
-                            }
-
-                        }
-
-                        Button(
-                            onClick = { abrirModal() },
-                            enabled = validarTerminos() and !verificarNombre(),
-                        ) {
-                            Text(text = "Enviar")
-                        }
-                    }
-
-                    if (modal) {
-                        AlertDialog(
-                            onDismissRequest = { },
-                            title = { Text("Confirmacion") },
-                            text = { Text("Formulario enviado correctamente") },
-                            confirmButton = {
-                                Button(onClick = { cerrarModal() }) { Text("OK") }
-                            }
-                        )
-                    }
-                }
+                LoginUi(loginModelForm)
+                //RegistroUi(registroModelForm)
             }
         }
     }
+}
 
 

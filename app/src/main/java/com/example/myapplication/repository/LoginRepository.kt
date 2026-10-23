@@ -1,12 +1,12 @@
 package com.example.myapplication.repository
 
-import com.example.myapplication.model.loginModel
+import com.example.myapplication.model.LoginModel
 
-class loginRepository {
+class LoginRepository {
 
-    private var formulario = loginModel()
+    private var formulario = LoginModel()
 
-    fun getLogin(): loginModel = formulario
+    fun getLogin(): LoginModel = formulario
 
     fun verificarNombre(): Boolean {
         if(formulario.nombre=="")
@@ -20,13 +20,6 @@ class loginRepository {
             return false
         else
             return true
-    }
-
-    fun validarTerminos(): Boolean {
-        if(formulario.terminos)
-            return true
-        else
-            return false
     }
 
 }
