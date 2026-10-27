@@ -4,11 +4,17 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.ui.RegistroUi
+
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.example.myapplication.ui.theme.LoginUi
 import com.example.myapplication.viewmodel.LoginViewModel
 import com.example.myapplication.viewmodel.RegistroViewModel
+
 
 class MainActivity : ComponentActivity() {
 
@@ -20,11 +26,27 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MyApplicationTheme {
-                LoginUi(loginModelForm)
-                //RegistroUi(registroModelForm)
+                val navController = rememberNavController()
+
+                NavHost(navController = navController, startDestination = "login") {
+
+                    composable("login") {
+                        val loginViewModel: LoginViewModel = viewModel()
+                        LoginUi(
+                            viewModel = loginViewModel,
+                            onNavigateToRegistro = {
+                                navController.navigate("registro")
+                            }
+                        )
+                    }
+
+                    composable("registro") {
+                        val registroViewModel: RegistroViewModel = viewModel()
+                        RegistroUi(viewModel = registroViewModel)
+                    }
+                }
             }
         }
     }
 }
-
 

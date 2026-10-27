@@ -20,7 +20,8 @@ import androidx.compose.ui.unit.dp
 import com.example.myapplication.viewmodel.LoginViewModel // Recomendado usar PascalCase
 
 @Composable
-fun LoginUi(viewModel: LoginViewModel) {
+fun LoginUi(viewModel: LoginViewModel,
+            onNavigateToRegistro:() -> Unit) {
     val formulario = viewModel.formulario
 
     Column(
@@ -63,7 +64,7 @@ fun LoginUi(viewModel: LoginViewModel) {
             modifier = Modifier.fillMaxWidth(0.8f),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Button(onClick = { /* Acción Registrarse */ }) {
+            Button(onClick = { onNavigateToRegistro() }) {
                 Text(text = "Registrarse")
             }
             Button(onClick = { /* Acción Recuperar */ }) {
