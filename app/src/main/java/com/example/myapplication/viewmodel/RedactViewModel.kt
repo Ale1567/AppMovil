@@ -1,0 +1,34 @@
+package com.example.myapplication.viewmodel
+
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
+import com.example.myapplication.model.IncidenciaItem
+import com.example.myapplication.repository.RedactRepository
+
+class RedactViewModel : ViewModel() {
+    private val repository = RedactRepository()
+
+    var estado by mutableStateOf(repository.getFormulario())
+        private set
+
+    fun onTituloChange(nuevoTitulo: String) {
+        estado = estado.copy(titulo = nuevoTitulo)
+    }
+
+    fun onAsuntoChange(nuevaDescripcion: String) {
+        estado = estado.copy(descripcion = nuevaDescripcion)
+    }
+
+    fun onImagenChange(nuevaImagen: String?) {
+        estado = estado.copy(imagenUri = nuevaImagen)
+    }
+
+    val isFormularioValido: Boolean
+        get() = estado.titulo.isNotBlank() && estado.descripcion.isNotBlank()
+
+    fun publicarIncidencia(): IncidenciaItem {
+        return repository.guardarIncidencia(estado)
+    }
+}

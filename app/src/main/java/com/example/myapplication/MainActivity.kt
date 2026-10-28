@@ -9,12 +9,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.ui.InicioUi
+import com.example.myapplication.ui.RedactUi
 import com.example.myapplication.ui.RegistroUi
 
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.example.myapplication.ui.theme.LoginUi
 import com.example.myapplication.viewmodel.InicioViewModel
 import com.example.myapplication.viewmodel.LoginViewModel
+import com.example.myapplication.viewmodel.RedactViewModel
 import com.example.myapplication.viewmodel.RegistroViewModel
 
 
@@ -27,7 +29,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MyApplicationTheme {
+            MyApplicationTheme{
                 val navController = rememberNavController()
 
                 NavHost(navController = navController, startDestination = "login") {
@@ -67,10 +69,17 @@ class MainActivity : ComponentActivity() {
                         val inicioViewModel: InicioViewModel = viewModel()
                         InicioUi(
                             inicioViewModel,
-                            { },
+                            { navController.navigate("redactar") },
                             { }
+                        )
+                    }
 
-
+                    composable("redactar") {
+                        val redactarViewModel: RedactViewModel = viewModel()
+                        RedactUi(
+                            viewModel = redactarViewModel,
+                            onNavigateBack = { navController.popBackStack() },
+                            onNavigateToPerfil = { navController.navigate("perfil") }
                         )
                     }
                 }
