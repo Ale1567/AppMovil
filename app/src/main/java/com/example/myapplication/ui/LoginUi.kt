@@ -21,7 +21,8 @@ import com.example.myapplication.viewmodel.LoginViewModel // Recomendado usar Pa
 
 @Composable
 fun LoginUi(viewModel: LoginViewModel,
-            onNavigateToRegistro:() -> Unit) {
+            onNavigateToRegistro:() -> Unit,
+            onLoginSuccess:() -> Unit) {
     val formulario = viewModel.formulario
 
     Column(
@@ -75,7 +76,7 @@ fun LoginUi(viewModel: LoginViewModel,
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = { /* Acción Enviar */ },
+            onClick = { onLoginSuccess() },
             enabled = viewModel.isFormularioValido
         ) {
             Text(text = "Iniciar sesion")

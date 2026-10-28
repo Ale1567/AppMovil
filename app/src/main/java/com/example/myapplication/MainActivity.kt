@@ -8,10 +8,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.myapplication.ui.InicioUi
 import com.example.myapplication.ui.RegistroUi
 
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.example.myapplication.ui.theme.LoginUi
+import com.example.myapplication.viewmodel.InicioViewModel
 import com.example.myapplication.viewmodel.LoginViewModel
 import com.example.myapplication.viewmodel.RegistroViewModel
 
@@ -36,13 +38,40 @@ class MainActivity : ComponentActivity() {
                             viewModel = loginViewModel,
                             onNavigateToRegistro = {
                                 navController.navigate("registro")
+                            },
+                            onLoginSuccess = {
+                                navController.navigate("inicio"){
+                                    popUpTo("login"){
+                                        inclusive = true
+                                    }
+                                }
                             }
                         )
                     }
 
                     composable("registro") {
                         val registroViewModel: RegistroViewModel = viewModel()
-                        RegistroUi(viewModel = registroViewModel)
+                        RegistroUi(
+                            viewModel = registroViewModel,
+                            onRegistroSuccess = {
+                                navController.navigate("inicio"){
+                                    popUpTo("registro") {
+                                        inclusive = true
+                                    }
+                                }
+                            }
+                        )
+                    }
+
+                    composable("inicio") {
+                        val inicioViewModel: InicioViewModel = viewModel()
+                        InicioUi(
+                            inicioViewModel,
+                            { },
+                            { }
+
+
+                        )
                     }
                 }
             }

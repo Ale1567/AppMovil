@@ -20,7 +20,8 @@ import androidx.compose.ui.unit.dp
 import com.example.myapplication.viewmodel.RegistroViewModel
 
 @Composable
-fun RegistroUi(viewModel: RegistroViewModel) {
+fun RegistroUi(viewModel: RegistroViewModel,
+               onRegistroSuccess:() -> Unit) {
     val formulario = viewModel.formulario
     Column(
         modifier = Modifier
@@ -101,7 +102,7 @@ fun RegistroUi(viewModel: RegistroViewModel) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = { /* Acción Registrarse */ },
+            onClick = { onRegistroSuccess() },
             enabled = viewModel.isFormularioValido,
             modifier = Modifier.fillMaxWidth(0.8f)
         ) {
