@@ -13,6 +13,10 @@ class InicioViewModel: ViewModel() {
     var estado by mutableStateOf(repository.getInicio())
     private set
 
+    fun cargarIncidencias() {
+        estado = repository.getInicio()
+    }
+
     fun onBuscadorChange(nuevaBusqueda: String){
         estado = estado.copy(buscador = nuevaBusqueda)
     }

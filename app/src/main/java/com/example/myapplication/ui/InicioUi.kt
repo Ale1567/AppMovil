@@ -33,7 +33,8 @@ import com.example.myapplication.viewmodel.InicioViewModel
 fun InicioUi(
     viewModel: InicioViewModel,
     onNavigateToRedactar: () -> Unit,
-    onNavigateToPerfil: () -> Unit
+    onNavigateToPerfil: () -> Unit,
+    onNavigateToIncidencia: (String) -> Unit
 ) {
     val estado = viewModel.estado
 
@@ -106,7 +107,11 @@ fun InicioUi(
             ) {
                 items(estado.ultimasIncidencias) { incidencia ->
                     Card(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable{
+                                onNavigateToIncidencia(incidencia.id)
+                            }
                     ) {
                         Column(
                             modifier = Modifier

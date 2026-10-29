@@ -10,5 +10,7 @@ data class IncidenciaItem(
     val id: String = "",
     val titulo: String = "",
     val descripcion: String = "",
-    val imagenUri: String? = null
+    val imagenUri: String? = null,
+    val comentarios: List<String> = emptyList()
 )
+

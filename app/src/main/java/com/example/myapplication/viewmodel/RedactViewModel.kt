@@ -21,14 +21,20 @@ class RedactViewModel : ViewModel() {
         estado = estado.copy(descripcion = nuevaDescripcion)
     }
 
-    fun onImagenChange(nuevaImagen: String?) {
+    fun onImageChange(nuevaImagen: String?) {
         estado = estado.copy(imagenUri = nuevaImagen)
     }
 
     val isFormularioValido: Boolean
         get() = estado.titulo.isNotBlank() && estado.descripcion.isNotBlank()
 
-    fun publicarIncidencia(): IncidenciaItem {
-        return repository.guardarIncidencia(estado)
+    fun publicarIncidencia() {
+        val nueva = IncidenciaItem(
+            id = System.currentTimeMillis().toString(),
+            titulo = estado.titulo,
+            descripcion = estado.descripcion,
+            imagenUri = estado.imagenUri
+        )
+        repository.agregarIncidencia(nueva)
     }
 }
