@@ -13,12 +13,14 @@ import com.example.myapplication.ui.InicioUi
 import com.example.myapplication.ui.RedactUi
 import com.example.myapplication.ui.RegistroUi
 import com.example.myapplication.ui.IncidenciaUi
+import com.example.myapplication.ui.PerfilUi
 
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.example.myapplication.ui.theme.LoginUi
 import com.example.myapplication.viewmodel.IncidenciaViewModel
 import com.example.myapplication.viewmodel.InicioViewModel
 import com.example.myapplication.viewmodel.LoginViewModel
+import com.example.myapplication.viewmodel.PerfilViewModel
 import com.example.myapplication.viewmodel.RedactViewModel
 import com.example.myapplication.viewmodel.RegistroViewModel
 
@@ -107,6 +109,16 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
+                    composable("perfil"){
+                        val perfilViewModel: PerfilViewModel = viewModel()
+
+                        PerfilUi(
+                            viewModel = perfilViewModel,
+                            onNavigateBack = { navController.popBackStack() },
+                            onNavigateToEditar = {},
+                            onNavigateToIncidencia = { idIncidencia -> navController.navigate("incidencia/$idIncidencia")}
+                        )
+                    }
                 }
             }
         }
