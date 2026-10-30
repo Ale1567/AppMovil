@@ -1,36 +1,54 @@
 package com.example.myapplication.ui.theme
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.myapplication.viewmodel.LoginViewModel // Recomendado usar PascalCase
+import androidx.compose.ui.unit.sp
+import com.example.myapplication.viewmodel.LoginViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
-fun LoginUi(viewModel: LoginViewModel,
-            onNavigateToRegistro:() -> Unit,
-            onLoginSuccess:() -> Unit) {
+fun LoginUi(
+    viewModel: LoginViewModel,
+    onNavigateToRegistro: () -> Unit,
+    onLoginSuccess: () -> Unit
+) {
     val formulario = viewModel.formulario
+    var cargando by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Ingresa tus datos para iniciar sesión")
+        Text(
+            text = "👁️",
+            fontSize = 60.sp
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "CrimeWatch",
+            style = MaterialTheme.typography.headlineLarge,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = "Ingresa tus datos para iniciar sesión",
+            color = MaterialTheme.colorScheme.onBackground
+        )
         Spacer(modifier = Modifier.height(15.dp))
 
         OutlinedTextField(
@@ -42,7 +60,8 @@ fun LoginUi(viewModel: LoginViewModel,
                 if (viewModel.verificarNombre()) {
                     Text("El campo esta vacio", color = Color.Red)
                 }
-            }
+            },
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -56,30 +75,62 @@ fun LoginUi(viewModel: LoginViewModel,
                 if (viewModel.verificarContrasena()) {
                     Text("El campo esta vacio", color = Color.Red)
                 }
-            }
+            },
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(15.dp))
 
         Row(
-            modifier = Modifier.fillMaxWidth(0.8f),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Button(onClick = { onNavigateToRegistro() }) {
+            Button(
+                onClick = { onNavigateToRegistro() },
+                enabled = !cargando
+            ) {
                 Text(text = "Registrarse")
             }
-            Button(onClick = { /* Acción Recuperar */ }) {
+            Button(
+                onClick = { /* Acción Recuperar */ },
+                enabled = !cargando
+            ) {
                 Text(text = "Recuperar")
             }
+        }
+
+        if (viewModel.errorLogin) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "Usuario no encontrado o contraseña incorrecta",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = { onLoginSuccess() },
-            enabled = viewModel.isFormularioValido
+            onClick = {
+                cargando = true
+                coroutineScope.launch(Dispatchers.Main) {
+                    delay(1500)
+                    cargando = false
+                    onLoginSuccess()
+                }
+            },
+            enabled = viewModel.isFormularioValido && !cargando,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text(text = "Iniciar sesion")
+            if (cargando) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp,
+                    color = Color.White
+                )
+            } else {
+                Text(text = "Iniciar sesion")
+            }
         }
     }
 }

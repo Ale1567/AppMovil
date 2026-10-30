@@ -19,11 +19,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +47,7 @@ import androidx.core.content.FileProvider
 import com.example.myapplication.viewmodel.RedactViewModel
 import java.io.File
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RedactUi(
     viewModel: RedactViewModel,
@@ -47,7 +56,7 @@ fun RedactUi(
 ) {
     val estado = viewModel.estado
     val context = LocalContext.current
-    var imageUri by remember { mutableStateOf<Uri?>(null)  }
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
 
     val takePictureLauncher = rememberLauncherForActivityResult(
@@ -55,7 +64,6 @@ fun RedactUi(
     ) { success ->
         if (success && imageUri != null) {
             try {
-                // Forma moderna y segura para cargar bitmaps grandes (vertical u horizontal) sin que fallen
                 val source = android.graphics.ImageDecoder.createSource(context.contentResolver, imageUri!!)
                 val bmp = android.graphics.ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
                     decoder.isMutableRequired = true
@@ -70,8 +78,7 @@ fun RedactUi(
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) {
-        granted ->
+    ) { granted ->
         if (granted) {
             val file = File.createTempFile("incidencia_foto", ".jpg", context.cacheDir)
             file.deleteOnExit()
@@ -83,97 +90,110 @@ fun RedactUi(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = "CrimeWatch", style = MaterialTheme.typography.titleLarge)
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer)
-                    .clickable { onNavigateToPerfil() },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = "👤", style = MaterialTheme.typography.bodyLarge)
-            }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("CrimeWatch") },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Volver"
+                        )
+                    }
+                },
+                actions = {
+                    Box(
+                        modifier = Modifier
+                            .padding(end = 16.dp)
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .clickable { onNavigateToPerfil() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = "👤", style = MaterialTheme.typography.bodyMedium)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            )
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = estado.titulo,
-            onValueChange = { viewModel.onTituloChange(it) },
-            label = { Text("Título de la incidencia") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = estado.descripcion,
-            onValueChange = { viewModel.onAsuntoChange(it) },
-            label = { Text("Descripción") },
+    ) { innerPadding ->
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = {
-                cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
-            },
-            modifier = Modifier.fillMaxWidth()
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(innerPadding)
+                .padding(16.dp)
         ) {
-            Text(text = "Subir Foto")
-        }
+            OutlinedTextField(
+                value = estado.titulo,
+                onValueChange = { viewModel.onTituloChange(it) },
+                label = { Text("Título de la incidencia") },
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        if (bitmap != null) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Rotación segura que detecta si está en vertical y ajusta sin crashear
-            val processedBitmap = remember(bitmap) {
-                val bmp = bitmap!!
-                // Si el ancho es mayor que el alto (horizontal forzado), lo enderezamos a vertical
-                if (bmp.width > bmp.height) {
-                    val matrix = android.graphics.Matrix().apply { postRotate(90f) }
-                    android.graphics.Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, matrix, true)
-                } else {
-                    bmp // Si ya está en vertical, lo dejamos tal cual
-                }
-            }
-
-            Image(
-                bitmap = processedBitmap.asImageBitmap(),
-                contentDescription = "Foto Incidencia",
+            OutlinedTextField(
+                value = estado.descripcion,
+                onValueChange = { viewModel.onAsuntoChange(it) },
+                label = { Text("Descripción") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
-                    .clip(MaterialTheme.shapes.medium),
-                contentScale = androidx.compose.ui.layout.ContentScale.Crop
             )
-        }
 
-        Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            onClick = {
-                viewModel.publicarIncidencia()
-                onNavigateBack()
-            },
-            enabled = viewModel.isFormularioValido,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = "Publicar")
+            Button(
+                onClick = {
+                    cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Subir Foto")
+            }
+
+            if (bitmap != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                val processedBitmap = remember(bitmap) {
+                    val bmp = bitmap!!
+                    if (bmp.width > bmp.height) {
+                        val matrix = android.graphics.Matrix().apply { postRotate(90f) }
+                        android.graphics.Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, matrix, true)
+                    } else {
+                        bmp
+                    }
+                }
+
+                Image(
+                    bitmap = processedBitmap.asImageBitmap(),
+                    contentDescription = "Foto Incidencia",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(MaterialTheme.shapes.medium),
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                )
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Button(
+                onClick = {
+                    viewModel.publicarIncidencia()
+                    onNavigateBack()
+                },
+                enabled = viewModel.isFormularioValido,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Publicar")
+            }
         }
     }
 }

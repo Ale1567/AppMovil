@@ -4,53 +4,49 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.myapplication.ui.InicioUi
-import com.example.myapplication.ui.RedactUi
-import com.example.myapplication.ui.RegistroUi
-import com.example.myapplication.ui.IncidenciaUi
-import com.example.myapplication.ui.PerfilUi
-
+import com.example.myapplication.repository.ManejoPersist
+import com.example.myapplication.ui.*
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.example.myapplication.ui.theme.LoginUi
-import com.example.myapplication.viewmodel.IncidenciaViewModel
-import com.example.myapplication.viewmodel.InicioViewModel
-import com.example.myapplication.viewmodel.LoginViewModel
-import com.example.myapplication.viewmodel.PerfilViewModel
-import com.example.myapplication.viewmodel.RedactViewModel
-import com.example.myapplication.viewmodel.RegistroViewModel
-
+import com.example.myapplication.viewmodel.*
 
 class MainActivity : ComponentActivity() {
-
-    private val loginModelForm = LoginViewModel()
-    private val registroModelForm = RegistroViewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val sessionManager = ManejoPersist(this)
+        val usuarioLogueado = sessionManager.isLoggedIn()
+
         setContent {
-            MyApplicationTheme{
+            var esModoOscuro by remember { mutableStateOf(false) }
+
+            MyApplicationTheme(darkTheme = esModoOscuro) {
                 val navController = rememberNavController()
 
-                NavHost(navController = navController, startDestination = "login") {
+                val pantallaInicial = if (usuarioLogueado) "inicio" else "login"
+
+                NavHost(navController = navController, startDestination = pantallaInicial) {
 
                     composable("login") {
                         val loginViewModel: LoginViewModel = viewModel()
 
                         LoginUi(
                             viewModel = loginViewModel,
-                            onNavigateToRegistro = {
-                                navController.navigate("registro")
-                            },
+                            onNavigateToRegistro = { navController.navigate("registro") },
                             onLoginSuccess = {
-                                navController.navigate("inicio"){
-                                    popUpTo("login"){
-                                        inclusive = true
+                                val esValido = loginViewModel.validarLoginPersistente(sessionManager)
+
+                                if (esValido) {
+                                    sessionManager.setLoggedIn(true)
+                                    navController.navigate("inicio") {
+                                        popUpTo("login") { inclusive = true }
                                     }
                                 }
                             }
@@ -63,10 +59,14 @@ class MainActivity : ComponentActivity() {
                         RegistroUi(
                             viewModel = registroViewModel,
                             onRegistroSuccess = {
-                                navController.navigate("inicio"){
-                                    popUpTo("registro") {
-                                        inclusive = true
-                                    }
+                                sessionManager.guardarUsuario(
+                                    nombre = registroViewModel.formulario.nombre,
+                                    correo = registroViewModel.formulario.correo,
+                                    contrasena = registroViewModel.formulario.contrasena
+                                )
+
+                                navController.navigate("inicio") {
+                                    popUpTo("registro") { inclusive = true }
                                 }
                             }
                         )
@@ -80,11 +80,21 @@ class MainActivity : ComponentActivity() {
                         }
 
                         InicioUi(
-                            inicioViewModel,
-                            { navController.navigate("redactar") },
-                            { navController.navigate("perfil") },
-                            { idIncidencia ->
+                            viewModel = inicioViewModel,
+                            onNavigateToRedactar = { navController.navigate("redactar") },
+                            onNavigateToPerfil = { navController.navigate("perfil") },
+                            onNavigateToIncidencia = { idIncidencia ->
                                 navController.navigate("incidencia/$idIncidencia")
+                            },
+                            onCerrarSesion = {
+                                sessionManager.setLoggedIn(false)
+                                navController.navigate("login") {
+                                    popUpTo("inicio") { inclusive = true }
+                                }
+                            },
+                            esModoOscuro = esModoOscuro,
+                            onCambiarModoOscuro = { nuevoValor ->
+                                esModoOscuro = nuevoValor
                             }
                         )
                     }
@@ -101,7 +111,7 @@ class MainActivity : ComponentActivity() {
 
                     composable("incidencia/{id}") { backStackEntry ->
                         val id = backStackEntry.arguments?.getString("id") ?: ""
-                        val viewModel = IncidenciaViewModel(id)
+                        val viewModel = remember { IncidenciaViewModel(application, id) }
 
                         IncidenciaUi(
                             viewModel = viewModel,
@@ -109,14 +119,23 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    composable("perfil"){
+                    composable("perfil") {
                         val perfilViewModel: PerfilViewModel = viewModel()
 
                         PerfilUi(
                             viewModel = perfilViewModel,
                             onNavigateBack = { navController.popBackStack() },
-                            onNavigateToEditar = {},
-                            onNavigateToIncidencia = { idIncidencia -> navController.navigate("incidencia/$idIncidencia")}
+                            onNavigateToEditar = { navController.navigate("edit") },
+                            onNavigateToIncidencia = { idIncidencia -> navController.navigate("incidencia/$idIncidencia") }
+                        )
+                    }
+
+                    composable("edit") {
+                        val editViewModel: EditViewModel = viewModel()
+
+                        EditUi(
+                            viewModel = editViewModel,
+                            onNavigateBack = { navController.popBackStack() }
                         )
                     }
                 }
@@ -124,4 +143,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-

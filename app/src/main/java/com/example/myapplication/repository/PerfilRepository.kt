@@ -1,27 +1,22 @@
 package com.example.myapplication.repository
 
+import android.content.Context
 import com.example.myapplication.model.PerfilModel
 
-class PerfilRepository {
+class PerfilRepository(context: Context) {
+    private val manejoPersist = ManejoPersist(context)
 
-    companion object {
-        var perfilActual = PerfilModel(
-            nombre = "Ale",
-            correo = "usuario@ejemplo.com",
+    fun obtenerPerfil(): PerfilModel {
+        return PerfilModel(
+            nombre = manejoPersist.obtenerNombre(),
+            correo = manejoPersist.obtenerCorreo(),
             descripcion = "vecino sector este",
             fotoPerfil = null,
             valoracion = "5/10"
         )
     }
 
-    fun obtenerPerfil(): PerfilModel {
-        return perfilActual
-    }
-
-    fun actualizarPerfil(nuevoNombre: String, nuevaDescripcion: String) {
-        perfilActual = perfilActual.copy(
-            nombre = nuevoNombre,
-            descripcion = nuevaDescripcion
-        )
+    fun actualizarPerfil(nuevoNombre: String, nuevaDescripcion: String, nuevoCorreo: String) {
+        manejoPersist.guardarUsuario(nuevoNombre, nuevoCorreo, "")
     }
 }

@@ -1,27 +1,27 @@
 package com.example.myapplication.viewmodel
 
+import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import com.example.myapplication.model.PerfilModel
 import com.example.myapplication.repository.InicioRepository
-import com.example.myapplication.repository.PerfilRepository
+import com.example.myapplication.repository.ManejoPersist
 
-class PerfilViewModel : ViewModel() {
+class PerfilViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val perfilRepository = PerfilRepository()
-    private val inicioRepository = InicioRepository()
+    private val manejoPersist = ManejoPersist(application)
+    private val inicioRepository = InicioRepository(application)
 
     var estado by mutableStateOf(
         PerfilModel(
-            perfilRepository.obtenerPerfil().nombre,
-            perfilRepository.obtenerPerfil().correo,
-            perfilRepository.obtenerPerfil().descripcion,
-            perfilRepository.obtenerPerfil().fotoPerfil,
-            perfilRepository.obtenerPerfil().valoracion,
-            inicioRepository.obtenerIncidencias()
-
+            nombre = manejoPersist.obtenerNombre(),
+            correo = manejoPersist.obtenerCorreo(),
+            descripcion = "vecino sector este",
+            fotoPerfil = manejoPersist.obtenerFoto(),
+            valoracion = "5/10",
+            incidencias = inicioRepository.obtenerIncidencias()
         )
     )
         private set

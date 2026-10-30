@@ -1,5 +1,6 @@
 package com.example.myapplication.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,20 +19,41 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.myapplication.viewmodel.RegistroViewModel
 
 @Composable
-fun RegistroUi(viewModel: RegistroViewModel,
-               onRegistroSuccess:() -> Unit) {
+fun RegistroUi(
+    viewModel: RegistroViewModel,
+    onRegistroSuccess: () -> Unit
+) {
     val formulario = viewModel.formulario
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .background(MaterialTheme.colorScheme.background)
+            .padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Ingresa tus datos para registrarte")
+        Text(
+            text = "👁️",
+            fontSize = 60.sp
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "CrimeWatch",
+            style = MaterialTheme.typography.headlineLarge,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text(
+            text = "Ingresa tus datos para registrarte",
+            color = MaterialTheme.colorScheme.onBackground
+        )
         Spacer(modifier = Modifier.height(15.dp))
 
         OutlinedTextField(
@@ -42,7 +65,8 @@ fun RegistroUi(viewModel: RegistroViewModel,
                 if (viewModel.verificarNombre()) {
                     Text("El campo está vacío", color = Color.Red)
                 }
-            }
+            },
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -56,7 +80,8 @@ fun RegistroUi(viewModel: RegistroViewModel,
                 if (viewModel.verificarCorreo()) {
                     Text("El campo está vacío", color = Color.Red)
                 }
-            }
+            },
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -70,7 +95,8 @@ fun RegistroUi(viewModel: RegistroViewModel,
                 if (viewModel.verificarContrasena()) {
                     Text("El campo está vacío", color = Color.Red)
                 }
-            }
+            },
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -84,27 +110,33 @@ fun RegistroUi(viewModel: RegistroViewModel,
                 if (viewModel.verificarVerificacion()) {
                     Text("Las contraseñas no coinciden o está vacío", color = Color.Red)
                 }
-            }
+            },
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(10.dp))
 
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
         ) {
-            Text(text = "Aceptas los términos y condiciones: ")
             Checkbox(
                 checked = formulario.terminos,
-                onCheckedChange = { viewModel.onTerminosChange(it) } // CORREGIDO
+                onCheckedChange = { viewModel.onTerminosChange(it) }
+            )
+            Text(
+                text = "Aceptas los términos y condiciones",
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         Button(
             onClick = { onRegistroSuccess() },
             enabled = viewModel.isFormularioValido,
-            modifier = Modifier.fillMaxWidth(0.8f)
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text(text = "Registrarse")
         }

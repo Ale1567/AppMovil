@@ -5,10 +5,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.myapplication.model.LoginModel
+import com.example.myapplication.repository.ManejoPersist
 
 class LoginViewModel : ViewModel() {
 
     var formulario by mutableStateOf(LoginModel())
+        private set
+
+    var errorLogin by mutableStateOf(false)
         private set
 
     fun onNombreChange(nuevoNombre: String) {
@@ -28,7 +32,12 @@ class LoginViewModel : ViewModel() {
         return formulario.contrasena.isBlank()
     }
 
-    // El formulario es válido solo si ninguno de los campos tiene errores
     val isFormularioValido: Boolean
         get() = !verificarNombre() && !verificarContrasena()
+
+    fun validarLoginPersistente(manejoPersist: ManejoPersist): Boolean {
+        val esValido = manejoPersist.validarLogin(formulario.nombre, formulario.contrasena)
+        errorLogin = !esValido
+        return esValido
+    }
 }
