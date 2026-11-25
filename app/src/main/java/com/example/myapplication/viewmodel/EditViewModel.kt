@@ -4,47 +4,58 @@ import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.AndroidViewModel // Cambiamos a AndroidViewModel para tener acceso a getApplication()
-import com.example.myapplication.model.EditModel
-import com.example.myapplication.repository.ManejoPersist
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.myapplication.repository.EditRepository
+import kotlinx.coroutines.launch
 
 class EditViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val manejoPersist = ManejoPersist(application)
+    private val repository = EditRepository(application)
 
-    var estado by mutableStateOf(
-        EditModel(
-            nombre = manejoPersist.obtenerNombre(),
-            descripcion = "vecino sector este",
-            correo = manejoPersist.obtenerCorreo()
-        )
-    )
+    var estado by mutableStateOf(repository.obtenerEstadoInicial())
         private set
 
-    fun onNombreChange(texto: String) { estado = estado.copy(nombre = texto) }
-    fun onDescripcionChange(texto: String) { estado = estado.copy(descripcion = texto) }
-    fun onCorreoChange(texto: String) { estado = estado.copy(correo = texto) }
-    fun onContrasenaActualChange(texto: String) { estado = estado.copy(contraseña = texto) }
-    fun onNuevaContrasenaChange(texto: String) { estado = estado.copy(nuevaContraseña = texto) }
+    var guardando by mutableStateOf(false)
+        private set
 
-    fun guardarCambios(): Boolean {
-        if (estado.nombre.isBlank() || estado.correo.isBlank()) {
-            estado = estado.copy(mensajeEstado = "El nombre o correo no pueden estar vacíos")
-            return false
-        }
-
-        manejoPersist.guardarUsuario(
-            nombre = estado.nombre,
-            correo = estado.correo,
-            contrasena = estado.contraseña
-        )
-
-        return true
+    fun onNombreChange(texto: String) {
+        estado = estado.copy(nombre = texto, mensajeEstado = null)
     }
 
-    fun onFotoChange(nuevaUri: String?) {
-        estado = estado.copy(fotoPerfil = nuevaUri)
-        val manejoPersist = ManejoPersist(getApplication())
-        manejoPersist.guardarFoto(nuevaUri)
+    fun onDescripcionChange(texto: String) {
+        estado = estado.copy(descripcion = texto, mensajeEstado = null)
+    }
+
+    fun onCorreoChange(texto: String) {
+        estado = estado.copy(correo = texto, mensajeEstado = null)
+    }
+
+    fun onContrasenaActualChange(texto: String) {
+        estado = estado.copy(contraseña = texto, mensajeEstado = null)
+    }
+
+    fun onNuevaContrasenaChange(texto: String) {
+        estado = estado.copy(nuevaContraseña = texto, mensajeEstado = null)
+    }
+
+    fun onFotoChange(nuevaFotoBase64: String?) {
+        estado = estado.copy(fotoPerfil = nuevaFotoBase64, mensajeEstado = null)
+    }
+
+    fun guardarCambios(onExito: () -> Unit) {
+        if (guardando) return
+
+        viewModelScope.launch {
+            guardando = true
+            val (ok, errorMsg) = repository.guardarCambios(estado)
+            guardando = false
+
+            if (ok) {
+                onExito()
+            } else {
+                estado = estado.copy(mensajeEstado = errorMsg)
+            }
+        }
     }
 }

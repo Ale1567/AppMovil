@@ -5,14 +5,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
-import com.example.myapplication.model.IncidenciaItem
+import androidx.lifecycle.viewModelScope
+import com.example.myapplication.model.RedactModel
 import com.example.myapplication.repository.RedactRepository
+import kotlinx.coroutines.launch
 
 class RedactViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = RedactRepository(application)
 
     var estado by mutableStateOf(repository.getFormulario())
+        private set
+
+    var cargando by mutableStateOf(false)
         private set
 
     fun onTituloChange(nuevoTitulo: String) {
@@ -28,15 +33,20 @@ class RedactViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     val isFormularioValido: Boolean
-        get() = estado.titulo.isNotBlank() && estado.descripcion.isNotBlank()
+        get() = repository.esFormularioValido(estado)
 
-    fun publicarIncidencia() {
-        val nueva = IncidenciaItem(
-            id = System.currentTimeMillis().toString(),
-            titulo = estado.titulo,
-            descripcion = estado.descripcion,
-            imagenUri = estado.imagenUri
-        )
-        repository.agregarIncidencia(nueva)
+    fun publicarIncidencia(onSuccess: () -> Unit) {
+        if (!isFormularioValido || cargando) return
+
+        viewModelScope.launch {
+            cargando = true
+            val resultado = repository.publicarIncidencia(estado)
+            cargando = false
+
+            if (resultado != null) {
+                estado = RedactModel()
+                onSuccess()
+            }
+        }
     }
 }

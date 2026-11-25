@@ -9,17 +9,22 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.myapplication.repository.ManejoPersist
 import com.example.myapplication.viewmodel.RegistroViewModel
 
 @Composable
@@ -28,6 +33,8 @@ fun RegistroUi(
     onRegistroSuccess: () -> Unit
 ) {
     val formulario = viewModel.formulario
+    val context = LocalContext.current
+    val manejoPersist = remember { ManejoPersist(context) }
 
     Column(
         modifier = Modifier
@@ -123,7 +130,8 @@ fun RegistroUi(
         ) {
             Checkbox(
                 checked = formulario.terminos,
-                onCheckedChange = { viewModel.onTerminosChange(it) }
+                onCheckedChange = { viewModel.onTerminosChange(it) },
+                enabled = !viewModel.cargando
             )
             Text(
                 text = "Aceptas los términos y condiciones",
@@ -131,14 +139,36 @@ fun RegistroUi(
             )
         }
 
+        if (viewModel.errorRegistro) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "No se pudo completar el registro en el servidor",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
         Spacer(modifier = Modifier.height(20.dp))
 
         Button(
-            onClick = { onRegistroSuccess() },
-            enabled = viewModel.isFormularioValido,
+            onClick = {
+                viewModel.registrarUsuario(
+                    manejoPersist = manejoPersist,
+                    onRegistroSuccess = onRegistroSuccess
+                )
+            },
+            enabled = viewModel.isFormularioValido && !viewModel.cargando,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(text = "Registrarse")
+            if (viewModel.cargando) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp,
+                    color = Color.White
+                )
+            } else {
+                Text(text = "Registrarse")
+            }
         }
     }
 }

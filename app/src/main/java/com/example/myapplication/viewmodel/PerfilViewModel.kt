@@ -5,24 +5,30 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
-import com.example.myapplication.model.PerfilModel
-import com.example.myapplication.repository.InicioRepository
-import com.example.myapplication.repository.ManejoPersist
+import androidx.lifecycle.viewModelScope
+import com.example.myapplication.repository.PerfilRepository
+import kotlinx.coroutines.launch
 
 class PerfilViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val manejoPersist = ManejoPersist(application)
-    private val inicioRepository = InicioRepository(application)
+    private val repository = PerfilRepository(application)
 
-    var estado by mutableStateOf(
-        PerfilModel(
-            nombre = manejoPersist.obtenerNombre(),
-            correo = manejoPersist.obtenerCorreo(),
-            descripcion = "vecino sector este",
-            fotoPerfil = manejoPersist.obtenerFoto(),
-            valoracion = "5/10",
-            incidencias = inicioRepository.obtenerIncidencias()
-        )
-    )
+    var estado by mutableStateOf(repository.obtenerPerfil())
         private set
+
+    var cargando by mutableStateOf(false)
+        private set
+
+    init {
+        refrescarPerfil()
+    }
+
+    fun refrescarPerfil() {
+        viewModelScope.launch {
+            cargando = true
+            estado = repository.refrescarPerfil()
+            cargando = false
+        }
+    }
+
 }

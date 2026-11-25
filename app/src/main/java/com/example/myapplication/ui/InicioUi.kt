@@ -19,12 +19,14 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,8 +49,11 @@ fun InicioUi(
     onCambiarModoOscuro: (Boolean) -> Unit = {}
 ) {
     val estado = viewModel.estado
-
     var menuDesplegado by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.cargarIncidencias()
+    }
 
     Scaffold(
         floatingActionButton = {
@@ -87,7 +92,7 @@ fun InicioUi(
                             .size(40.dp)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.primaryContainer)
-                            .clickable { menuDesplegado = true }, // Abrir menú desplegable
+                            .clickable { menuDesplegado = true },
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -154,7 +159,15 @@ fun InicioUi(
                 style = MaterialTheme.typography.titleMedium
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (viewModel.cargando) {
+                LinearProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                )
+            }
 
             LazyColumn(
                 modifier = Modifier.weight(1f),

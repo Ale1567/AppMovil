@@ -1,18 +1,22 @@
 package com.example.myapplication
 
+import android.app.Application
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.repository.ManejoPersist
 import com.example.myapplication.ui.*
-import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.example.myapplication.ui.theme.LoginUi
+import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.example.myapplication.viewmodel.*
 
 class MainActivity : ComponentActivity() {
@@ -29,7 +33,6 @@ class MainActivity : ComponentActivity() {
 
             MyApplicationTheme(darkTheme = esModoOscuro) {
                 val navController = rememberNavController()
-
                 val pantallaInicial = if (usuarioLogueado) "inicio" else "login"
 
                 NavHost(navController = navController, startDestination = pantallaInicial) {
@@ -41,13 +44,9 @@ class MainActivity : ComponentActivity() {
                             viewModel = loginViewModel,
                             onNavigateToRegistro = { navController.navigate("registro") },
                             onLoginSuccess = {
-                                val esValido = loginViewModel.validarLoginPersistente(sessionManager)
-
-                                if (esValido) {
-                                    sessionManager.setLoggedIn(true)
-                                    navController.navigate("inicio") {
-                                        popUpTo("login") { inclusive = true }
-                                    }
+                                sessionManager.setLoggedIn(true)
+                                navController.navigate("inicio") {
+                                    popUpTo("login") { inclusive = true }
                                 }
                             }
                         )
@@ -64,7 +63,7 @@ class MainActivity : ComponentActivity() {
                                     correo = registroViewModel.formulario.correo,
                                     contrasena = registroViewModel.formulario.contrasena
                                 )
-
+                                sessionManager.setLoggedIn(true)
                                 navController.navigate("inicio") {
                                     popUpTo("registro") { inclusive = true }
                                 }
@@ -111,10 +110,20 @@ class MainActivity : ComponentActivity() {
 
                     composable("incidencia/{id}") { backStackEntry ->
                         val id = backStackEntry.arguments?.getString("id") ?: ""
-                        val viewModel = remember { IncidenciaViewModel(application, id) }
+                        val app = LocalContext.current.applicationContext as Application
+
+                        val incidenciaViewModel: IncidenciaViewModel = viewModel(
+                            key = id,
+                            factory = object : ViewModelProvider.Factory {
+                                @Suppress("UNCHECKED_CAST")
+                                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                    return IncidenciaViewModel(app, id) as T
+                                }
+                            }
+                        )
 
                         IncidenciaUi(
-                            viewModel = viewModel,
+                            viewModel = incidenciaViewModel,
                             onNavigateBack = { navController.popBackStack() }
                         )
                     }
@@ -122,11 +131,17 @@ class MainActivity : ComponentActivity() {
                     composable("perfil") {
                         val perfilViewModel: PerfilViewModel = viewModel()
 
+                        LaunchedEffect(Unit) {
+                            perfilViewModel.refrescarPerfil()
+                        }
+
                         PerfilUi(
                             viewModel = perfilViewModel,
                             onNavigateBack = { navController.popBackStack() },
                             onNavigateToEditar = { navController.navigate("edit") },
-                            onNavigateToIncidencia = { idIncidencia -> navController.navigate("incidencia/$idIncidencia") }
+                            onNavigateToIncidencia = { idIncidencia ->
+                                navController.navigate("incidencia/$idIncidencia")
+                            }
                         )
                     }
 

@@ -1,17 +1,16 @@
 package com.example.myapplication.ui
 
 import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.graphics.Matrix
 import android.net.Uri
-import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,11 +21,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -40,7 +39,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
@@ -64,8 +65,8 @@ fun RedactUi(
     ) { success ->
         if (success && imageUri != null) {
             try {
-                val source = android.graphics.ImageDecoder.createSource(context.contentResolver, imageUri!!)
-                val bmp = android.graphics.ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
+                val source = ImageDecoder.createSource(context.contentResolver, imageUri!!)
+                val bmp = ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
                     decoder.isMutableRequired = true
                 }
                 bitmap = bmp
@@ -83,7 +84,9 @@ fun RedactUi(
             val file = File.createTempFile("incidencia_foto", ".jpg", context.cacheDir)
             file.deleteOnExit()
             val uri = FileProvider.getUriForFile(
-                context, context.packageName + ".provider", file
+                context,
+                context.packageName + ".provider",
+                file
             )
             imageUri = uri
             takePictureLauncher.launch(uri)
@@ -95,7 +98,10 @@ fun RedactUi(
             TopAppBar(
                 title = { Text("CrimeWatch") },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(
+                        onClick = onNavigateBack,
+                        enabled = !viewModel.cargando
+                    ) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Volver"
@@ -109,7 +115,7 @@ fun RedactUi(
                             .size(36.dp)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.primaryContainer)
-                            .clickable { onNavigateToPerfil() },
+                            .clickable(enabled = !viewModel.cargando) { onNavigateToPerfil() },
                         contentAlignment = Alignment.Center
                     ) {
                         Text(text = "👤", style = MaterialTheme.typography.bodyMedium)
@@ -133,6 +139,7 @@ fun RedactUi(
                 value = estado.titulo,
                 onValueChange = { viewModel.onTituloChange(it) },
                 label = { Text("Título de la incidencia") },
+                enabled = !viewModel.cargando,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -142,6 +149,7 @@ fun RedactUi(
                 value = estado.descripcion,
                 onValueChange = { viewModel.onAsuntoChange(it) },
                 label = { Text("Descripción") },
+                enabled = !viewModel.cargando,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
@@ -153,6 +161,7 @@ fun RedactUi(
                 onClick = {
                     cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
                 },
+                enabled = !viewModel.cargando,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = "Subir Foto")
@@ -164,8 +173,8 @@ fun RedactUi(
                 val processedBitmap = remember(bitmap) {
                     val bmp = bitmap!!
                     if (bmp.width > bmp.height) {
-                        val matrix = android.graphics.Matrix().apply { postRotate(90f) }
-                        android.graphics.Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, matrix, true)
+                        val matrix = Matrix().apply { postRotate(90f) }
+                        Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, matrix, true)
                     } else {
                         bmp
                     }
@@ -178,7 +187,7 @@ fun RedactUi(
                         .fillMaxWidth()
                         .height(200.dp)
                         .clip(MaterialTheme.shapes.medium),
-                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                    contentScale = ContentScale.Crop
                 )
             }
 
@@ -186,13 +195,22 @@ fun RedactUi(
 
             Button(
                 onClick = {
-                    viewModel.publicarIncidencia()
-                    onNavigateBack()
+                    viewModel.publicarIncidencia {
+                        onNavigateBack()
+                    }
                 },
-                enabled = viewModel.isFormularioValido,
+                enabled = viewModel.isFormularioValido && !viewModel.cargando,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = "Publicar")
+                if (viewModel.cargando) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = Color.White
+                    )
+                } else {
+                    Text(text = "Publicar")
+                }
             }
         }
     }

@@ -8,8 +8,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,7 +19,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.example.myapplication.viewmodel.IncidenciaViewModel
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,7 +34,10 @@ fun IncidenciaUi(
                 title = { Text("CrimeWatch") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver"
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -47,9 +49,9 @@ fun IncidenciaUi(
             if (incidencia != null) {
                 Surface(
                     tonalElevation = 8.dp,
-                    modifier = Modifier.fillMaxWidth()
-                        . fillMaxWidth()
-                        . imePadding()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .imePadding()
                 ) {
                     Row(
                         modifier = Modifier
@@ -61,6 +63,7 @@ fun IncidenciaUi(
                             value = viewModel.nuevoComentario,
                             onValueChange = { viewModel.onComentarioChange(it) },
                             placeholder = { Text("Escribe un comentario...") },
+                            enabled = !viewModel.enviandoComentario,
                             modifier = Modifier
                                 .weight(1f)
                                 .padding(end = 8.dp),
@@ -68,14 +71,23 @@ fun IncidenciaUi(
                         )
                         IconButton(
                             onClick = { viewModel.publicarComentario() },
+                            enabled = viewModel.nuevoComentario.isNotBlank() && !viewModel.enviandoComentario,
                             modifier = Modifier
                                 .background(MaterialTheme.colorScheme.primary, CircleShape)
                         ) {
-                            Icon(
-                                Icons.Default.Send,
-                                contentDescription = "Publicar",
-                                tint = MaterialTheme.colorScheme.onPrimary
-                            )
+                            if (viewModel.enviandoComentario) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    strokeWidth = 2.dp,
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.Send,
+                                    contentDescription = "Publicar",
+                                    tint = MaterialTheme.colorScheme.onPrimary
+                                )
+                            }
                         }
                     }
                 }
@@ -83,7 +95,12 @@ fun IncidenciaUi(
         }
     ) { paddingValues ->
         if (incidencia == null) {
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
                 Text("Incidencia no encontrada")
             }
         } else {
@@ -120,7 +137,7 @@ fun IncidenciaUi(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                Divider()
+                HorizontalDivider()
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
@@ -129,6 +146,14 @@ fun IncidenciaUi(
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
+
+                if (viewModel.cargandoComentarios) {
+                    LinearProgressIndicator(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                    )
+                }
 
                 LazyColumn(
                     modifier = Modifier

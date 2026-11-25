@@ -7,12 +7,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.myapplication.repository.ManejoPersist
 import com.example.myapplication.viewmodel.LoginViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @Composable
 fun LoginUi(
@@ -21,8 +20,8 @@ fun LoginUi(
     onLoginSuccess: () -> Unit
 ) {
     val formulario = viewModel.formulario
-    var cargando by remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val manejoPersist = remember { ManejoPersist(context) }
 
     Column(
         modifier = Modifier
@@ -87,13 +86,13 @@ fun LoginUi(
         ) {
             Button(
                 onClick = { onNavigateToRegistro() },
-                enabled = !cargando
+                enabled = !viewModel.cargando
             ) {
                 Text(text = "Registrarse")
             }
             Button(
                 onClick = { /* Acción Recuperar */ },
-                enabled = !cargando
+                enabled = !viewModel.cargando
             ) {
                 Text(text = "Recuperar")
             }
@@ -112,17 +111,15 @@ fun LoginUi(
 
         Button(
             onClick = {
-                cargando = true
-                coroutineScope.launch(Dispatchers.Main) {
-                    delay(1500)
-                    cargando = false
-                    onLoginSuccess()
-                }
+                viewModel.iniciarSesion(
+                    manejoPersist = manejoPersist,
+                    onLoginSuccess = onLoginSuccess
+                )
             },
-            enabled = viewModel.isFormularioValido && !cargando,
+            enabled = viewModel.isFormularioValido && !viewModel.cargando,
             modifier = Modifier.fillMaxWidth()
         ) {
-            if (cargando) {
+            if (viewModel.cargando) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(20.dp),
                     strokeWidth = 2.dp,

@@ -13,7 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,13 +33,13 @@ fun EditUi(
 ) {
     val estado = viewModel.estado
 
-    var imageBitmap by remember {
+    var imageBitmap by remember(estado.fotoPerfil) {
         mutableStateOf<Bitmap?>(
             if (!estado.fotoPerfil.isNullOrEmpty()) {
                 try {
                     val decodedBytes = Base64.decode(estado.fotoPerfil, Base64.DEFAULT)
                     BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     null
                 }
             } else {
@@ -68,8 +68,14 @@ fun EditUi(
             TopAppBar(
                 title = { Text("Editar Cuenta") },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                    IconButton(
+                        onClick = onNavigateBack,
+                        enabled = !viewModel.guardando
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver"
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -91,7 +97,7 @@ fun EditUi(
                     .size(90.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primaryContainer)
-                    .clickable {
+                    .clickable(enabled = !viewModel.guardando) {
                         cameraLauncher.launch(null)
                     },
                 contentAlignment = Alignment.Center
@@ -120,6 +126,7 @@ fun EditUi(
                 value = estado.nombre,
                 onValueChange = { viewModel.onNombreChange(it) },
                 label = { Text("Nombre") },
+                enabled = !viewModel.guardando,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -129,6 +136,7 @@ fun EditUi(
                 value = estado.descripcion,
                 onValueChange = { viewModel.onDescripcionChange(it) },
                 label = { Text("Descripción") },
+                enabled = !viewModel.guardando,
                 modifier = Modifier.fillMaxWidth(),
                 maxLines = 3
             )
@@ -139,6 +147,7 @@ fun EditUi(
                 value = estado.correo,
                 onValueChange = { viewModel.onCorreoChange(it) },
                 label = { Text("Cambiar Correo") },
+                enabled = !viewModel.guardando,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -148,6 +157,7 @@ fun EditUi(
                 value = estado.contraseña,
                 onValueChange = { viewModel.onContrasenaActualChange(it) },
                 label = { Text("Contraseña Actual") },
+                enabled = !viewModel.guardando,
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -156,23 +166,42 @@ fun EditUi(
 
             OutlinedTextField(
                 value = estado.nuevaContraseña,
-                onValueChange = { viewModel.onNuevaContrasenaChange(it) }, // <-- Cambiado de onValueCode a onValueChange
+                onValueChange = { viewModel.onNuevaContrasenaChange(it) },
                 label = { Text("Nueva Contraseña") },
+                enabled = !viewModel.guardando,
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth()
             )
+
+            if (!estado.mensajeEstado.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = estado.mensajeEstado,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
                 onClick = {
-                    if (viewModel.guardarCambios()) {
+                    viewModel.guardarCambios {
                         onNavigateBack()
                     }
                 },
+                enabled = !viewModel.guardando,
                 modifier = Modifier.fillMaxWidth(0.6f)
             ) {
-                Text(text = "OK")
+                if (viewModel.guardando) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text(text = "OK")
+                }
             }
         }
     }

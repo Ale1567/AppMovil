@@ -10,7 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -32,13 +32,12 @@ fun PerfilUi(
 ) {
     val estado = viewModel.estado
 
-    // Convertimos la cadena Base64 guardada en el estado a un Bitmap para mostrarla si existe
     val fotoBitmap = remember(estado.fotoPerfil) {
         if (!estado.fotoPerfil.isNullOrEmpty()) {
             try {
                 val decodedBytes = Base64.decode(estado.fotoPerfil, Base64.DEFAULT)
                 BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 null
             }
         } else {
@@ -52,7 +51,10 @@ fun PerfilUi(
                 title = { Text("") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver"
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -67,6 +69,14 @@ fun PerfilUi(
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
+            if (viewModel.cargando) {
+                LinearProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                )
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -126,7 +136,7 @@ fun PerfilUi(
             }
 
             Spacer(modifier = Modifier.height(20.dp))
-            Divider()
+            HorizontalDivider()
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
